@@ -1,0 +1,8 @@
+#include "stm32f10x.h"
+#include "typedef.h"
+#include "io.h"
+#include "init.h"
+#include "main.h"
+#include "states.h"
+#include "lcd.h"
+#include "dmx.h"

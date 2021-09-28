@@ -1,0 +1,12 @@
+
+*.o
+*.pbi
+*.xcl
+*.dep
+BrowseInfo/.ninja_deps
+BrowseInfo/.ninja_log
+*.pbd
+*.browse
+*.pbw
+DMXSceneController/.ninja_deps
+DMXSceneController/.ninja_log
