@@ -45,6 +45,7 @@ void lcd_write(uint8_t byte){
 
 void init_lcd(){
   //make sure to wait 15ms after power up
+  wait_ms(15);
   GPIO_ResetBits(LCD_PORT, LCD_RS);
   
   lcd_write4bit(0x03);
@@ -85,7 +86,7 @@ void lcd_setcursor(uint8_t row, uint8_t col){
 void lcd_putchars(uint8_t* chr, uint8_t len){
   GPIO_SetBits(LCD_PORT, LCD_RS);
   uint8_t i;
-  for(i = 0; i<len; i++){
+  for(i = 0; i<len && *chr!=0x00; i++){
     if(*chr > 31 && *chr < 126){
       lcd_write(*chr);
     }else{

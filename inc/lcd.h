@@ -13,16 +13,17 @@
 
 #ifdef MODULE_LCD
 
-void write4bit(uint8_t nibble);
+void lcd_write(uint8_t byte);
+void lcd_write4bit(uint8_t nibble);
 
 void init_lcd();
 void lcd_setcursor(uint8_t row, uint8_t col);
 void lcd_putchars(uint8_t* chr, uint8_t len);
-void lcd_write(uint8_t byte);
-void lcd_write4bit(uint8_t nibble);
 void lcd_clear();
 
 #else
+
+
 
 extern void init_lcd();
 extern void lcd_setcursor(uint8_t col, uint8_t row);

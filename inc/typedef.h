@@ -1,7 +1,7 @@
 #ifndef TYPEDEF_H
 #define TYPEDEF_H
 
-#define DMX_PACKET_LEN 513
+#define DMX_PACKET_LEN 513U
 
 typedef struct{
   uint8_t start;
@@ -19,5 +19,4 @@ typedef struct{
   tDmx_packet buf;
   tDmx_transmitter_status transmitter_status;
 }tDmx;
-
 #endif

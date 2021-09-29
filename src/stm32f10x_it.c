@@ -24,41 +24,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "project_header.h"
-    
-/** @addtogroup STM32F10x_StdPeriph_Examples
-  * @{
-  */
 
-/** @addtogroup IRQ_Mask
-  * @{
-  */ 
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
-
-/******************************************************************************/
-/*            Cortex-M3 Processor Exceptions Handlers                         */
-/******************************************************************************/
-
-/**
-  * @brief  This function handles NMI exception.
-  * @param  None
-  * @retval None
-  */
 void NMI_Handler(void)
 {
 }
 
-/**
-  * @brief  This function handles Hard Fault exception.
-  * @param  None
-  * @retval None
-  */
 void HardFault_Handler(void)
 {
   /* Go to infinite loop when Hard Fault exception occurs */
@@ -67,11 +37,6 @@ void HardFault_Handler(void)
   }
 }
 
-/**
-  * @brief  This function handles Memory Manage exception.
-  * @param  None
-  * @retval None
-  */
 void MemManage_Handler(void)
 {
   /* Go to infinite loop when Memory Manage exception occurs */
@@ -80,11 +45,6 @@ void MemManage_Handler(void)
   }
 }
 
-/**
-  * @brief  This function handles Bus Fault exception.
-  * @param  None
-  * @retval None
-  */
 void BusFault_Handler(void)
 {
   /* Go to infinite loop when Bus Fault exception occurs */
@@ -93,11 +53,6 @@ void BusFault_Handler(void)
   }
 }
 
-/**
-  * @brief  This function handles Usage Fault exception.
-  * @param  None
-  * @retval None
-  */
 void UsageFault_Handler(void)
 {
   /* Go to infinite loop when Usage Fault exception occurs */
@@ -106,82 +61,50 @@ void UsageFault_Handler(void)
   }
 }
 
-/**
-  * @brief  This function handles SVCall exception.
-  * @param  None
-  * @retval None
-  */
 void SVC_Handler(void)
 {
 }
 
-/**
-  * @brief  This function handles Debug Monitor exception.
-  * @param  None
-  * @retval None
-  */
 void DebugMon_Handler(void)
 {
 }
 
-/**
-  * @brief  This function handles PendSV_Handler exception.
-  * @param  None
-  * @retval None
-  */
 void PendSV_Handler(void)
 {
 }
 
-/**
-  * @brief  This function handles SysTick Handler.
-  * @param  None
-  * @retval None
-  */
 void SysTick_Handler(void)
 {
   millis++;
 }
 
-/******************************************************************************/
-/*            STM32F10x Peripherals Interrupt Handlers                        */
-/******************************************************************************/
-
-/**
-  * @brief  This function handles EXTI Lines 0 interrupt request.
-  * @param  None
-  * @retval None
-  */
 void EXTI0_IRQHandler(void)
 {
  
 } 
 
-/**
-  * @brief  This function handles TIM2 global interrupt request.
-  * @param  None
-  * @retval None
-  */
 void TIM2_IRQHandler(void)
 {
   
 }
 
-/**
-  * @brief  This function handles TIM3 global interrupt request.
-  * @param  None
-  * @retval None
-  */
 void TIM3_IRQHandler(void)
 {
+  TIM3->SR &= 0;                    //Clear Flags
+  TIM3->DIER &= ~TIM_IT_Update;     //Disable Interrupt
+  TIM3->CR1 &= ~TIM_CR1_CEN;        //Stop Counter
+  
+  USART_IN->CR1 |= USART_CR1_UE;
+  //Configure Pins as alternate Function
+  //USART_IN_RX_PORT->CRH &= ~USART_IN_RX_CNF_MASK;
+  //USART_IN_RX_PORT->CRH |= 0x08 << USART_IN_RX_CNF_POS;
+  
+  //And Start DMA to sample the data
+  DMA1_Channel5->CNDTR = DMX_PACKET_LEN;
+  DMA_Cmd(DMA1_Channel5, ENABLE);
   
 }
 
-/**
-  * @brief  This function handles TIM4 global interrupt request.
-  * @param  None
-  * @retval None
-  */
 void TIM4_IRQHandler(void)
 {
   LED_ON;
@@ -189,6 +112,7 @@ void TIM4_IRQHandler(void)
   if((TIM4->SR & TIM_IT_Update) && (TIM4->DIER & TIM_IT_Update)){
     //Send out
     USART_OUT_TX_PORT->CRH |= 0x08 << USART_OUT_TX_CNF_POS;
+    DMA1_Channel2->CNDTR = DMX_PACKET_LEN;
     DMA_Cmd(DMA1_Channel2, ENABLE);
 
   }else if((TIM4->SR & TIM_IT_CC1) && (TIM4->DIER & TIM_IT_CC1)){
@@ -202,52 +126,55 @@ void TIM4_IRQHandler(void)
     USART_OUT_TX_PORT->BSRR |= USART_OUT_TX_PIN;
   }
   
+  //TODO: Speed up
   TIM4_CLEAR_INTERRUPTS;
   LED_OFF;
 }
 
-/******************************************************************************/
-/*                 STM32F10x Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32f10x_xx.s).                                            */
-/******************************************************************************/
-
 void DMA1_Channel2_IRQHandler(){
-  LED_ON;
   if(DMA_GetITStatus(DMA1_IT_TC2)){
     DMA_ClearITPendingBit(DMA1_IT_GL2);
     //transfer complete --> start wait timer if no abort requested    
     if(dmx.transmitter_status == DMX_TRANSMIT_STOP_REQUESTED || 
       dmx.transmitter_status == DMX_TRANSMIT_STOPPED){
-      dmx.transmitter_status = DMX_TRANSMIT_STOPPED;
+      
+      TIM_Cmd(TIM4, DISABLE);
+      TIM4_CLEAR_INTERRUPTS;
+
+      dmx.transmitter_status = DMX_TRANSMIT_STOPPED;     
     }else{
       DMA_Cmd(DMA1_Channel2, DISABLE);
       DMA1_Channel2->CNDTR = DMX_PACKET_LEN;
-      //TIM4->CNT=0;
-      //TIM4_CLEAR_INTERRUPTS;
-
-      //TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
     }
   }
-  LED_OFF;
 }
 
-/**
-  * @brief  This function handles PPP interrupt request.
-  * @param  None
-  * @retval None
-  */
-/*void PPP_IRQHandler(void)
-{
-}*/
+void DMA1_Channel5_IRQHandler(){
+  if(DMA_GetITStatus(DMA1_IT_TC5)){
+    DMA_ClearITPendingBit(DMA1_IT_GL5);
+    USART_IN->CR1 &= ~USART_CR1_UE;
+        
+  }
+}
 
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
+void EXTI15_10_IRQHandler(){
+  //TODO check if system state corresponds
+  
+  //GET BREAK from DMX
+  if((EXTI->PR & EXTI_Line10) && (EXTI->IMR & EXTI_Line10)){
+    EXTI->PR = EXTI_Line10;
+    
+    if(GPIOA->IDR & USART_IN_RX_PIN){
+      //Pin is high --> Stop Counter
+      TIM3->DIER &= ~TIM_IT_Update;      //Disable Interrupt
+      TIM3->CR1 &= ~TIM_CR1_CEN;
+      asm("nop");
+    }else{
+      //Pin is low --> Start Counter
+      TIM3->CNT = 0;
+      TIM3->CR1 |= TIM_CR1_CEN;         //Start Counter
+      TIM3->SR &= 0;                    //Clear Flags
+      TIM3->DIER |= TIM_IT_Update;      //Enable Interrupt
+    }
+  }
+}

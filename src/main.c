@@ -1,7 +1,8 @@
 #define MODULE_MAIN
 #include "project_header.h"
 
-uint8_t lcd_buf[] = "Hallo Welt      ";
+const uint8_t* str_bootup_1 = "Hochfahren      ";
+const uint8_t* str_bootup_2 = "www.schwaab.cc  ";
 
 uint8_t main(){
   
@@ -13,30 +14,26 @@ uint8_t main(){
   
   
 #endif
-  
+
+ 
   init_core();
   init_clock();
   init_io();
-  init_lcd();
-  init_timers();
   
+  init_lcd();
+  lcd_setcursor(0,0);
+  lcd_putchars((uint8_t*)str_bootup_1, 16);
+  lcd_setcursor(1,0);
+  lcd_putchars((uint8_t*)str_bootup_2, 16);
+  
+  init_timers();
   init_usart();
   init_dma();
 
-  dmx_start_transmit();
-  while(1){
-  /*lcd_setcursor(0,3);
-  lcd_putchars(lcd_buf, 10);
+  init_rx_exti();
   
-  wait_ms(1000);
-  lcd_clear();
-  
-  lcd_setcursor(1,3);
-  lcd_putchars(lcd_buf, 10);
-  
-  wait_ms(1000);
-  lcd_clear();
-  */
+  while(1){    
+    fsm();  
   }
 }
 
