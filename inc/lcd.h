@@ -20,16 +20,19 @@ void init_lcd();
 void lcd_setcursor(uint8_t row, uint8_t col);
 void lcd_putchars(uint8_t* chr, uint8_t len);
 void lcd_clear();
+void lcd_repaint();
+
+tLCD lcd;
 
 #else
-
-
 
 extern void init_lcd();
 extern void lcd_setcursor(uint8_t col, uint8_t row);
 extern void lcd_putchars(uint8_t* chr, uint8_t len);
 extern void lcd_clear();
+extern void lcd_repaint();
 
+extern tLCD lcd;
 
 #endif
 #endif

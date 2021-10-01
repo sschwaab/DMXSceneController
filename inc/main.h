@@ -5,6 +5,10 @@
 #define LED_ON  GPIO_ResetBits(LED_PORT, LED_PIN)
 #define LED_OFF GPIO_SetBits(LED_PORT, LED_PIN)
    
+#define MENU_BUTTON_RECORD 0x01
+#define MENU_BUTTON_DOWN 0x02
+#define MENU_BUTTON_UP 0x04
+#define MENU_BUTTON_EXIT 0x08
 
 #ifdef MODULE_MAIN
 //Global Variables
@@ -16,6 +20,7 @@ uint8_t recall_buttons;
 
 //|-----------------------------------------------------------------------|
 //|   XX   |   XX   |   XX   |   XX   |   B3   |   B2   |   B1   |   B0   |
+//|        |        |        |        |  EXIT  |   UP   |  DOWN  |  RECO  |      
 //|-----------------------------------------------------------------------|
 uint8_t menu_buttons;
 

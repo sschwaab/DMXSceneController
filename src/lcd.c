@@ -81,6 +81,7 @@ void lcd_setcursor(uint8_t row, uint8_t col){
   
   lcd_write(0x80 | col | row);
   LCD_WAIT
+  LCD_WAIT
 }
 
 void lcd_putchars(uint8_t* chr, uint8_t len){
@@ -94,7 +95,7 @@ void lcd_putchars(uint8_t* chr, uint8_t len){
     }
     chr++;
   
-    LCD_WAIT;
+    LCD_WAIT
   }
 }
 
@@ -102,6 +103,16 @@ void lcd_clear(){
   GPIO_ResetBits(LCD_PORT, LCD_RS);
   
   lcd_write(0x01);
-  LCD_WAIT
-  wait_ms(2);
+  wait_ms(3);
+}
+
+void lcd_repaint(){
+  if(lcd.repaint == LCD_REPAINT){
+    lcd_clear();
+    lcd_setcursor(0,0);
+    lcd_putchars((uint8_t*)lcd.line1,16);
+    lcd_setcursor(1,0);
+    lcd_putchars((uint8_t*)lcd.line2,16);
+    lcd.repaint = LCD_NO_REPAINT;
+  }
 }

@@ -38,8 +38,10 @@ void init_io(){
   
   GPIO_InitTypeDef gpio_init;
   //PORT A OUTPUTS
-  gpio_init.GPIO_Pin = DISP_DB4_PIN | DISP_DB5_PIN| DISP_DB6_PIN| DISP_DB7_PIN | DISP_E_PIN | DISP_RS_PIN;
-  gpio_init.GPIO_Speed = GPIO_Speed_10MHz;
+  gpio_init.GPIO_Pin = DISP_DB4_PIN | DISP_DB5_PIN| DISP_DB6_PIN| DISP_DB7_PIN;
+  gpio_init.GPIO_Pin |= DISP_E_PIN | DISP_RS_PIN | RELAY_SEND_PIN ;
+  gpio_init.GPIO_Pin |= RELAY_RECEIVE_PIN;
+  gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
   gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;
   
   GPIO_Init(GPIOA, &gpio_init); 
@@ -213,10 +215,10 @@ void init_rx_exti(){
   exti_init.EXTI_Mode = EXTI_Mode_Interrupt;
   exti_init.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
   exti_init.EXTI_LineCmd = ENABLE;
-  EXTI->IMR &= ~EXTI_Line10;    //Disable Interrupt but keep config
   
   EXTI_Init(&exti_init); 
-  
+  EXTI->IMR &= ~EXTI_Line10;    //Disable Interrupt but keep config
+
   NVIC_InitTypeDef nvic_init;
   nvic_init.NVIC_IRQChannel = EXTI15_10_IRQn;
   nvic_init.NVIC_IRQChannelPreemptionPriority = 10;

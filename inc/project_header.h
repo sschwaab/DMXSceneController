@@ -1,5 +1,6 @@
 #include "stm32f10x.h"
 #include "typedef.h"
+#include "strings.h"
 #include "io.h"
 #include "init.h"
 #include "main.h"

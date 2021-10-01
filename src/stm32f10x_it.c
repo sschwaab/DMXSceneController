@@ -94,12 +94,11 @@ void TIM3_IRQHandler(void)
   TIM3->DIER &= ~TIM_IT_Update;     //Disable Interrupt
   TIM3->CR1 &= ~TIM_CR1_CEN;        //Stop Counter
   
-  USART_IN->CR1 |= USART_CR1_UE;
-  //Configure Pins as alternate Function
-  //USART_IN_RX_PORT->CRH &= ~USART_IN_RX_CNF_MASK;
-  //USART_IN_RX_PORT->CRH |= 0x08 << USART_IN_RX_CNF_POS;
+  EXTI->IMR &= ~EXTI_Line10;    //Disable Break Search EXTI
+
   
-  //And Start DMA to sample the data
+  USART_IN->CR1 |= USART_CR1_UE;
+   //And Start DMA to sample the data
   DMA1_Channel5->CNDTR = DMX_PACKET_LEN;
   DMA_Cmd(DMA1_Channel5, ENABLE);
   
@@ -137,7 +136,7 @@ void DMA1_Channel2_IRQHandler(){
     //transfer complete --> start wait timer if no abort requested    
     if(dmx.transmitter_status == DMX_TRANSMIT_STOP_REQUESTED || 
       dmx.transmitter_status == DMX_TRANSMIT_STOPPED){
-      
+      DMA_Cmd(DMA1_Channel2, DISABLE);
       TIM_Cmd(TIM4, DISABLE);
       TIM4_CLEAR_INTERRUPTS;
 
@@ -150,10 +149,14 @@ void DMA1_Channel2_IRQHandler(){
 }
 
 void DMA1_Channel5_IRQHandler(){
+//TODO Clear interrupts by default!
+
   if(DMA_GetITStatus(DMA1_IT_TC5)){
+    DMA_Cmd(DMA1_Channel5, DISABLE);
     DMA_ClearITPendingBit(DMA1_IT_GL5);
     USART_IN->CR1 &= ~USART_CR1_UE;
-        
+
+    dmx.recorder.frame_found = DMX_RECORDER_FRAME_FOUND; 
   }
 }
 
@@ -168,7 +171,6 @@ void EXTI15_10_IRQHandler(){
       //Pin is high --> Stop Counter
       TIM3->DIER &= ~TIM_IT_Update;      //Disable Interrupt
       TIM3->CR1 &= ~TIM_CR1_CEN;
-      asm("nop");
     }else{
       //Pin is low --> Start Counter
       TIM3->CNT = 0;
