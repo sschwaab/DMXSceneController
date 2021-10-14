@@ -34,6 +34,8 @@ void fsm(){
       //Button 7 is passthrough
       if(scene_id==7){
         GPIO_ResetBits(RELAY_SEND_PORT, RELAY_SEND_PIN);
+        GPIO_ResetBits(ADM_OUT_DE_PORT, ADM_OUT_DE_PIN);
+        
         wait_ms(10);
         
         //update LCD
@@ -50,6 +52,7 @@ void fsm(){
         state=ST_DMX_MASTER;
         
         GPIO_SetBits(RELAY_SEND_PORT, RELAY_SEND_PIN);
+        GPIO_SetBits(ADM_OUT_DE_PORT, ADM_OUT_DE_PIN);
         wait_ms(10);
         
         //update LCD
@@ -69,10 +72,12 @@ void fsm(){
     //Recall was requested
     //Stop transmit, and wait until stopped before loading scene
     
-    if(recall_buttons != 0x00 || menu_buttons & MENU_BUTTON_RECORD){
+    if(recall_buttons != 0x00 || menu_buttons & MENU_BUTTON_RECORD || dmx.transmitter_status == DMX_TRANSMIT_STOP_REQUESTED){
       dmx_request_stop_transmit();
+      
       if(dmx.transmitter_status == DMX_TRANSMIT_STOPPED){
         GPIO_ResetBits(RELAY_SEND_PORT, RELAY_SEND_PIN);
+        GPIO_ResetBits(ADM_OUT_DE_PORT, ADM_OUT_DE_PIN);
         if(recall_buttons != 0x00){
           state=ST_LOAD_SCENE;
         }else if(menu_buttons & MENU_BUTTON_RECORD){
@@ -131,6 +136,7 @@ void fsm(){
       lcd.repaint = LCD_REPAINT;
     }else if(menu_buttons & MENU_BUTTON_RECORD){
       GPIO_SetBits(RELAY_RECEIVE_PORT, RELAY_RECEIVE_PIN);
+      GPIO_ResetBits(ADM_IN_NRE_PORT, ADM_IN_NRE_PIN);
       wait_ms(20);
       state = ST_RECORD;
       dmx.recorder.recorder_status = DMX_RECORD_SearchFrame1;
@@ -188,6 +194,11 @@ void fsm(){
       strcpy(lcd.line2, str_record_savedframe_2);
       lcd.repaint = LCD_REPAINT;
   
+      GPIO_SetBits(RELAY_RECEIVE_PORT, RELAY_RECEIVE_PIN);
+      GPIO_ResetBits(ADM_IN_NRE_PORT, ADM_IN_NRE_PIN);
+      
+      wait_ms(20);
+      
       state = ST_RECORD_POST;
       
       break;

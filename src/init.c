@@ -35,18 +35,38 @@ void init_io(){
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+  
   
   GPIO_InitTypeDef gpio_init;
   //PORT A OUTPUTS
   gpio_init.GPIO_Pin = DISP_DB4_PIN | DISP_DB5_PIN| DISP_DB6_PIN| DISP_DB7_PIN;
-  gpio_init.GPIO_Pin |= DISP_E_PIN | DISP_RS_PIN | RELAY_SEND_PIN ;
-  gpio_init.GPIO_Pin |= RELAY_RECEIVE_PIN;
+  gpio_init.GPIO_Pin |= DISP_E_PIN | DISP_RS_PIN | RELAY_SEND_PIN | DISP_BL_PIN;
+  gpio_init.GPIO_Pin |= RELAY_RECEIVE_PIN | ADM_IN_DE_PIN | ADM_IN_NRE_PIN;
+  
+  gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
+  gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;
+   
+  GPIO_Init(GPIOA, &gpio_init); 
+  
+  GPIO_SetBits(ADM_IN_NRE_PORT, ADM_IN_NRE_PIN);
+  
+  //PORT B OUTPUTS
+  gpio_init.GPIO_Pin = 0;
+  
+  gpio_init.GPIO_Pin = ADM_OUT_DE_PIN | ADM_OUT_NRE_PIN | MEM_N_CS_PIN;
+  
   gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
   gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;
   
-  GPIO_Init(GPIOA, &gpio_init); 
-    
+  GPIO_Init(GPIOB, &gpio_init); 
+  
+  GPIO_SetBits(ADM_OUT_NRE_PORT, ADM_OUT_NRE_PIN);
+  GPIO_SetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
+      
   //PORT C OUTPUTS
+  gpio_init.GPIO_Pin = 0;
+    
   gpio_init.GPIO_Pin = LED_PIN;
   gpio_init.GPIO_Speed = GPIO_Speed_10MHz;
   gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;
@@ -71,9 +91,9 @@ void init_usart(){
   USART_Init(USART_OUT, &usart_init);
 
   //Configure USART1
-  usart_init.USART_BaudRate = 115200;   //TODO_ONLY DEBUG //250000
+  usart_init.USART_BaudRate = 250000;
   usart_init.USART_WordLength = USART_WordLength_8b;
-  usart_init.USART_StopBits = USART_StopBits_1; //TODO ONLY DEBUG //2
+  usart_init.USART_StopBits = USART_StopBits_2;
   usart_init.USART_Parity = USART_Parity_No;
   usart_init.USART_Mode = USART_Mode_Rx;
   usart_init.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
@@ -227,3 +247,66 @@ void init_rx_exti(){
   NVIC_Init(&nvic_init);
 }
 
+
+void init_mem(){
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+
+  
+  SPI_InitTypeDef spi_init;
+  
+  spi_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+  spi_init.SPI_Mode = SPI_Mode_Master;
+  spi_init.SPI_DataSize = SPI_DataSize_8b;
+  spi_init.SPI_CPOL = SPI_CPOL_Low; 
+  spi_init.SPI_CPHA = SPI_CPHA_1Edge;
+  spi_init.SPI_NSS = SPI_NSS_Soft;
+  spi_init.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+  spi_init.SPI_FirstBit = SPI_FirstBit_MSB;
+  
+  SPI_Init(SPI1, &spi_init);
+  
+  //Configure Pins
+  GPIO_InitTypeDef gpio_init;
+  gpio_init.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
+  gpio_init.GPIO_Mode = GPIO_Mode_AF_PP;
+  gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_Init(GPIOB, &gpio_init); 
+  
+  GPIO_PinRemapConfig(GPIO_Remap_SPI1, ENABLE);
+  GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+  
+  SPI_Cmd(SPI1, ENABLE);
+  /*(void)SPI1->DR;
+  
+  GPIO_ResetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
+  SPI_I2S_SendData(SPI1, 0x06);
+  while(SPI1->SR & SPI_SR_BSY);
+  GPIO_SetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
+  
+  GPIO_ResetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
+  SPI_I2S_SendData(SPI1, 0x02);
+  while(SPI1->SR & SPI_SR_BSY);
+  SPI_I2S_SendData(SPI1, 0x00);
+  while(SPI1->SR & SPI_SR_BSY);
+  SPI_I2S_SendData(SPI1, 0x00);
+  while(SPI1->SR & SPI_SR_BSY);
+  SPI_I2S_SendData(SPI1, 0x55);
+  while(SPI1->SR & SPI_SR_BSY);
+  GPIO_SetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
+  
+  wait_ms(500);
+  
+  
+  GPIO_ResetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
+  SPI_I2S_SendData(SPI1, 0x03);
+  while(SPI1->SR & SPI_SR_BSY);
+  SPI_I2S_SendData(SPI1, 0x00);
+  while(SPI1->SR & SPI_SR_BSY);
+  SPI_I2S_SendData(SPI1, 0x00);
+  while(SPI1->SR & SPI_SR_BSY);
+  char tmp = SPI1->DR;
+  SPI_I2S_SendData(SPI1, 0x00);
+  while(SPI1->SR & SPI_SR_BSY);
+  tmp = SPI1->DR;
+  GPIO_SetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);*/
+}

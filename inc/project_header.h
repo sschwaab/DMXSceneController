@@ -7,3 +7,4 @@
 #include "states.h"
 #include "lcd.h"
 #include "dmx.h"
+#include "mem.h"

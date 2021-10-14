@@ -10,6 +10,8 @@ uint8_t main(){
   
   init_lcd();
   
+  GPIO_SetBits(DISP_BL_PORT, DISP_BL_PIN);
+  
   strcpy((char*)lcd.line1, (const char*)str_bootup_1);
   strcpy((char*)lcd.line2, (const char*)str_bootup_2);
   lcd.repaint = LCD_REPAINT;
@@ -17,9 +19,11 @@ uint8_t main(){
   
   init_timers();
   init_usart();
+  init_mem();
   init_dma();
 
   init_rx_exti();
+  
   
   wait_ms(500);
   

@@ -180,3 +180,8 @@ void EXTI15_10_IRQHandler(){
     }
   }
 }
+
+void SPI1_IRQHandler(){
+  while(1);
+  
+}

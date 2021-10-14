@@ -11,6 +11,7 @@ void init_usart();
 void init_timers();
 void init_dma();
 void init_rx_exti();
+void init_mem();
 
 #else
 
@@ -21,6 +22,6 @@ extern void init_usart();
 extern void init_timers();
 extern void init_dma();
 extern void init_rx_exti();
-
+extern void init_mem();
 #endif
 #endif

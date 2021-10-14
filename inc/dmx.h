@@ -13,10 +13,12 @@ tDmx dmx;
 void load_scene(uint8_t scene_id);
 void dmx_start_transmit();
 void dmx_request_stop_transmit();
+void dmx_capture_frame();
 #else
 extern tDmx dmx;
 extern void load_scene(uint8_t scene_id);
 extern void dmx_start_transmit();
 extern void dmx_request_stop_transmit();
+extern void dmx_capture_frame();
 #endif
 #endif
