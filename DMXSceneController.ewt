@@ -8527,6 +8527,9 @@
             <name>$PROJ_DIR$\inc\io.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\inc\iox.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\inc\lcd.h</name>
         </file>
         <file>
@@ -8720,6 +8723,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\src\init.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\src\iox.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\src\lcd.c</name>

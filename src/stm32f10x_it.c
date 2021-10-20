@@ -181,7 +181,13 @@ void EXTI15_10_IRQHandler(){
   }
 }
 
-void SPI1_IRQHandler(){
-  while(1);
-  
+void EXTI9_5_IRQHandler(){
+  EXTI->IMR &= ~EXTI_IMR_MR7;
+  if((EXTI->PR & EXTI_Line7)){
+    EXTI->PR = EXTI_Line7;
+    
+    uint8_t btns = iox_read_input(I2C1, 0x40);
+    recall_buttons |= ~btns;
+  }
+  EXTI->IMR |= EXTI_IMR_MR7;
 }

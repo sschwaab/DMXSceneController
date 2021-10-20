@@ -257,8 +257,8 @@ void init_mem(){
   spi_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
   spi_init.SPI_Mode = SPI_Mode_Master;
   spi_init.SPI_DataSize = SPI_DataSize_8b;
-  spi_init.SPI_CPOL = SPI_CPOL_Low; 
-  spi_init.SPI_CPHA = SPI_CPHA_1Edge;
+  spi_init.SPI_CPOL = SPI_CPOL_High; 
+  spi_init.SPI_CPHA = SPI_CPHA_2Edge;
   spi_init.SPI_NSS = SPI_NSS_Soft;
   spi_init.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
   spi_init.SPI_FirstBit = SPI_FirstBit_MSB;
@@ -267,7 +267,7 @@ void init_mem(){
   
   //Configure Pins
   GPIO_InitTypeDef gpio_init;
-  gpio_init.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
+  gpio_init.GPIO_Pin = SPI_CLK_PIN | SPI_MOSI_PIN | SPI_MISO_PIN;
   gpio_init.GPIO_Mode = GPIO_Mode_AF_PP;
   gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_Init(GPIOB, &gpio_init); 
@@ -276,37 +276,6 @@ void init_mem(){
   GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
   
   SPI_Cmd(SPI1, ENABLE);
-  /*(void)SPI1->DR;
-  
-  GPIO_ResetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
-  SPI_I2S_SendData(SPI1, 0x06);
-  while(SPI1->SR & SPI_SR_BSY);
-  GPIO_SetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
-  
-  GPIO_ResetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
-  SPI_I2S_SendData(SPI1, 0x02);
-  while(SPI1->SR & SPI_SR_BSY);
-  SPI_I2S_SendData(SPI1, 0x00);
-  while(SPI1->SR & SPI_SR_BSY);
-  SPI_I2S_SendData(SPI1, 0x00);
-  while(SPI1->SR & SPI_SR_BSY);
-  SPI_I2S_SendData(SPI1, 0x55);
-  while(SPI1->SR & SPI_SR_BSY);
-  GPIO_SetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
-  
-  wait_ms(500);
-  
-  
-  GPIO_ResetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);
-  SPI_I2S_SendData(SPI1, 0x03);
-  while(SPI1->SR & SPI_SR_BSY);
-  SPI_I2S_SendData(SPI1, 0x00);
-  while(SPI1->SR & SPI_SR_BSY);
-  SPI_I2S_SendData(SPI1, 0x00);
-  while(SPI1->SR & SPI_SR_BSY);
-  char tmp = SPI1->DR;
-  SPI_I2S_SendData(SPI1, 0x00);
-  while(SPI1->SR & SPI_SR_BSY);
-  tmp = SPI1->DR;
-  GPIO_SetBits(MEM_N_CS_PORT, MEM_N_CS_PIN);*/
+  (void)SPI1->DR;
 }
+

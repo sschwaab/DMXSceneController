@@ -8,3 +8,4 @@
 #include "lcd.h"
 #include "dmx.h"
 #include "mem.h"
+#include "iox.h"

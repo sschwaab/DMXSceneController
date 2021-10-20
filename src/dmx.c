@@ -21,7 +21,13 @@ void dmx_capture_frame(){
 }
 
 void load_scene(uint8_t scene_id){
-  for(int i = 0; i<512; i++){
-    dmx.buf.data[i] = scene_id<<4 | scene_id;
-  }
+  uint16_t address = (DMX_PACKET_LEN-1) * scene_id;
+  
+  read_from_eeprom(address, (uint8_t*)&dmx.buf.data, DMX_PACKET_LEN-1);
+}
+
+void save_scene(uint8_t scene_id){
+  uint16_t address = (DMX_PACKET_LEN-1) * scene_id;
+  
+  write_to_eeprom(address, (uint8_t*)&dmx.buf.data, DMX_PACKET_LEN - 1);
 }

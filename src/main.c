@@ -23,7 +23,8 @@ uint8_t main(){
   init_dma();
 
   init_rx_exti();
-  
+  init_i2c_iox();
+  init_iox_interrupt();
   
   wait_ms(500);
   

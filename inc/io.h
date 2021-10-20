@@ -68,6 +68,20 @@
 #define MEM_N_CS_PORT GPIOB
 #define MEM_N_CS_PIN GPIO_Pin_6
 
+#define SPI_PORT GPIOB
+#define SPI_CLK_PIN GPIO_Pin_3
+#define SPI_MOSI_PIN GPIO_Pin_5
+#define SPI_MISO_PIN GPIO_Pin_4
+
+//******************************************************//
+//IO Expander
+//******************************************************//
+#define I2C_PORT GPIOB
+#define I2C_SDA_PIN GPIO_Pin_9
+#define I2C_SCK_PIN GPIO_Pin_8
+
+#define IOX_INTERRUPT_PORT GPIOB
+#define IOX_INTERRUPT_PIN GPIO_Pin_7
 
 //TODO: Refactor
 #define TIM4_CLEAR_INTERRUPTS TIM_ClearITPendingBit(TIM4, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)
