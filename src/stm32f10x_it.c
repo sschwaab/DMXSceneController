@@ -106,7 +106,6 @@ void TIM3_IRQHandler(void)
 
 void TIM4_IRQHandler(void)
 {
-  LED_ON;
   //IDLE HIGH ELAPSED Start Break
   if((TIM4->SR & TIM_IT_Update) && (TIM4->DIER & TIM_IT_Update)){
     //Send out
@@ -127,7 +126,6 @@ void TIM4_IRQHandler(void)
   
   //TODO: Speed up
   TIM4_CLEAR_INTERRUPTS;
-  LED_OFF;
 }
 
 void DMA1_Channel2_IRQHandler(){
@@ -179,6 +177,28 @@ void EXTI15_10_IRQHandler(){
       TIM3->DIER |= TIM_IT_Update;      //Enable Interrupt
     }
   }
+  
+  if((EXTI->PR & EXTI_Line12) && (EXTI->IMR & EXTI_Line12)){
+    EXTI->PR = EXTI_Line12;
+    menu_buttons |= MENU_BUTTON_RECORD;
+  }
+  
+  if((EXTI->PR & EXTI_Line13) && (EXTI->IMR & EXTI_Line13)){
+    EXTI->PR = EXTI_Line13;
+    menu_buttons |= MENU_BUTTON_DOWN;
+  }
+  
+  if((EXTI->PR & EXTI_Line14) && (EXTI->IMR & EXTI_Line14)){
+    EXTI->PR = EXTI_Line14;
+    menu_buttons |= MENU_BUTTON_UP;
+  }
+  
+  if((EXTI->PR & EXTI_Line15) && (EXTI->IMR & EXTI_Line15)){
+    EXTI->PR = EXTI_Line15;
+    menu_buttons |= MENU_BUTTON_EXIT;
+  }
+
+  
 }
 
 void EXTI9_5_IRQHandler(){

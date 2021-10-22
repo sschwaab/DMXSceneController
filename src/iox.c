@@ -5,6 +5,8 @@ void init_i2c_iox(){
   GPIO_InitTypeDef gpio_init;
   I2C_InitTypeDef i2c_init;
 
+
+  
   // Configure I2C1 Pins
   gpio_init.GPIO_Pin = I2C_SCK_PIN | I2C_SDA_PIN;
   gpio_init.GPIO_Mode = GPIO_Mode_AF_OD;
@@ -13,16 +15,13 @@ void init_i2c_iox(){
 
   GPIO_PinRemapConfig(GPIO_Remap_I2C1, ENABLE);
   GPIO_PinRemapConfig(GPIO_Remap_TIM4, ENABLE);
-  
+   
   GPIO_SetBits(I2C_PORT, I2C_SCK_PIN);
   GPIO_SetBits(I2C_PORT, I2C_SDA_PIN);
-  
+      
   // clock enable
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
   
-  I2C_SoftwareResetCmd(I2C1, ENABLE);
-  I2C_SoftwareResetCmd(I2C1, DISABLE);
-
   i2c_init.I2C_Mode = I2C_Mode_I2C;
   i2c_init.I2C_DutyCycle = I2C_DutyCycle_2;
   i2c_init.I2C_OwnAddress1 = 0x00;
@@ -32,8 +31,56 @@ void init_i2c_iox(){
   
   I2C_Init(I2C1, &i2c_init);
   
-  //I2C_SoftwareResetCmd(I2C1, ENABLE);
-  //I2C_SoftwareResetCmd(I2C1, DISABLE); 
+  //Busy Flag Stuck see errata
+  if(I2C1->SR2 & I2C_SR2_BUSY){
+    
+    // 1. Disable the I2C peripheral by clearing the PE bit in I2Cx_CR1 register.
+    I2C1->CR1 &= ~I2C_CR1_PE;
+    //2. Configure the SCL and SDA I/Os as General Purpose Output Open-Drain, High level 
+    //(Write 1 to GPIOx_ODR).
+    gpio_init.GPIO_Pin = I2C_SCK_PIN | I2C_SDA_PIN;
+    gpio_init.GPIO_Mode = GPIO_Mode_Out_OD;
+    GPIO_Init(I2C_PORT, &gpio_init);
+    
+    GPIO_SetBits(I2C_PORT, I2C_SCK_PIN);
+    GPIO_SetBits(I2C_PORT, I2C_SDA_PIN);
+    //3. Check SCL and SDA High level in GPIOx_IDR.
+    while(GPIO_ReadInputDataBit(I2C_PORT, I2C_SCK_PIN) == Bit_RESET || 
+       GPIO_ReadInputDataBit(I2C_PORT, I2C_SDA_PIN) == Bit_RESET);
+    //4. Configure the SDA I/O as General Purpose Output Open-Drain, Low level (Write 0 to 
+    //GPIOx_ODR).
+    GPIO_ResetBits(I2C_PORT, I2C_SDA_PIN);
+    //5. Check SDA Low level in GPIOx_IDR.
+    while(GPIO_ReadInputDataBit(I2C_PORT, I2C_SDA_PIN) == Bit_SET);
+    //6. Configure the SCL I/O as General Purpose Output Open-Drain, Low level (Write 0 to 
+    //GPIOx_ODR).
+    GPIO_ResetBits(I2C_PORT, I2C_SCK_PIN);
+    //7. Check SCL Low level in GPIOx_IDR.
+    while(GPIO_ReadInputDataBit(I2C_PORT, I2C_SCK_PIN) == Bit_SET);
+    //8. Configure the SCL I/O as General Purpose Output Open-Drain, High level (Write 1 to 
+    //GPIOx_ODR).
+    GPIO_SetBits(I2C_PORT, I2C_SCK_PIN);
+    //9. Check SCL High level in GPIOx_IDR.
+    while(GPIO_ReadInputDataBit(I2C_PORT, I2C_SCK_PIN) == Bit_RESET);
+    //10. Configure the SDA I/O as General Purpose Output Open-Drain , High level (Write 1 to 
+    //GPIOx_ODR).
+    GPIO_SetBits(I2C_PORT, I2C_SDA_PIN);
+    //11. Check SDA High level in GPIOx_IDR.
+    while(GPIO_ReadInputDataBit(I2C_PORT, I2C_SDA_PIN) == Bit_RESET);
+    //12. Configure the SCL and SDA I/Os as Alternate function Open-Drain.
+    gpio_init.GPIO_Mode = GPIO_Mode_AF_OD;
+    GPIO_Init(I2C_PORT, &gpio_init);
+    //13. Set SWRST bit in I2Cx_CR1 register.
+    I2C_SoftwareResetCmd(I2C1, ENABLE);
+    //14. Clear SWRST bit in I2Cx_CR1 register.
+    I2C_SoftwareResetCmd(I2C1, DISABLE);
+    //15. Enable the I2C peripheral by setting the PE bit in I2Cx_CR1 register.
+    
+    I2C_Init(I2C1, &i2c_init);
+
+  }
+  
+  
   
   uint8_t i2c_config[3];
 
@@ -41,18 +88,30 @@ void init_i2c_iox(){
   i2c_config[1] = 0xFF;   // Port0: all pins outputs
   i2c_config[2] = 0x00;   // Port1: all pins outputs
   i2c_transmit_data(I2C1, 0x40, &i2c_config[0], 3);
+  
+  //Workaround: PB5 cannot be used when I2C Clock enabled --> errata
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, DISABLE);
 }
 
 void iox_set_led(uint8_t led){
+  //Workaround: PB5 cannot be used when I2C Clock enabled --> errata
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+  
   uint8_t i2c_config[2];
 
   i2c_config[0] = 0x03; // command: output register
   i2c_config[1] = led;
   
   i2c_transmit_data(I2C1, 0x40, &i2c_config[0], 3);
+  
+  //Workaround: PB5 cannot be used when I2C Clock enabled --> errata
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, DISABLE);
 }
 
 uint8_t iox_read_input(I2C_TypeDef *I2Cx, uint8_t i2c_addr){
+  //Workaround: PB5 cannot be used when I2C Clock enabled --> errata
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+  
   EXTI->IMR &= ~EXTI_IMR_MR7;
   
   uint8_t buf = 0x00;
@@ -82,6 +141,8 @@ uint8_t iox_read_input(I2C_TypeDef *I2Cx, uint8_t i2c_addr){
   I2C_GenerateSTOP(I2C1, ENABLE);
   EXTI->IMR |= EXTI_IMR_MR7;
   
+  //Workaround: PB5 cannot be used when I2C Clock enabled --> errata
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, DISABLE);
   
   return data;  
 }

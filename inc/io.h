@@ -83,6 +83,24 @@
 #define IOX_INTERRUPT_PORT GPIOB
 #define IOX_INTERRUPT_PIN GPIO_Pin_7
 
+//******************************************************//
+//Menu Buttons
+//******************************************************//
+#define MENU_BUTTONS_PORT GPIOB
+#define MENU_BUTTON_RECORD_PIN GPIO_Pin_12
+#define MENU_BUTTON_DOWN_PIN GPIO_Pin_13
+#define MENU_BUTTON_UP_PIN GPIO_Pin_14
+#define MENU_BUTTON_EXIT_PIN GPIO_Pin_15
+
+//******************************************************//
+//Onbard LED
+//******************************************************//
+#define LED_PORT GPIOC
+#define LED_PIN GPIO_Pin_13
+
+#define TOGGLE_LED 
+
+
 //TODO: Refactor
 #define TIM4_CLEAR_INTERRUPTS TIM_ClearITPendingBit(TIM4, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)
 

@@ -250,8 +250,7 @@ void init_rx_exti(){
 
 void init_mem(){
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
-
-  
+ 
   SPI_InitTypeDef spi_init;
   
   spi_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
@@ -265,12 +264,20 @@ void init_mem(){
   
   SPI_Init(SPI1, &spi_init);
   
+  
+  
   //Configure Pins
   GPIO_InitTypeDef gpio_init;
-  gpio_init.GPIO_Pin = SPI_CLK_PIN | SPI_MOSI_PIN | SPI_MISO_PIN;
+  
+    gpio_init.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
   gpio_init.GPIO_Mode = GPIO_Mode_AF_PP;
   gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_Init(GPIOB, &gpio_init); 
+  
+  /*gpio_init.GPIO_Pin = SPI_CLK_PIN | SPI_MOSI_PIN | SPI_MISO_PIN;
+  gpio_init.GPIO_Mode = GPIO_Mode_AF_PP;
+  gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOB, &gpio_init); */
   
   GPIO_PinRemapConfig(GPIO_Remap_SPI1, ENABLE);
   GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
@@ -278,4 +285,48 @@ void init_mem(){
   SPI_Cmd(SPI1, ENABLE);
   (void)SPI1->DR;
 }
+
+void init_menu_buttons(){
+  GPIO_InitTypeDef gpio_init;
+  gpio_init.GPIO_Pin = MENU_BUTTON_RECORD_PIN | MENU_BUTTON_DOWN_PIN;
+  gpio_init.GPIO_Pin |= MENU_BUTTON_UP_PIN | MENU_BUTTON_EXIT_PIN;
+  gpio_init.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_Init(MENU_BUTTONS_PORT, &gpio_init);
+  
+  GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource12);
+  GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource13);
+  GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource14);
+  GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource15);
+  
+  EXTI_InitTypeDef exti_init;
+  exti_init.EXTI_Line = EXTI_Line12;
+  exti_init.EXTI_Mode = EXTI_Mode_Interrupt;
+  exti_init.EXTI_Trigger = EXTI_Trigger_Rising;
+  exti_init.EXTI_LineCmd = ENABLE;
+  
+  EXTI_Init(&exti_init); 
+  
+  exti_init.EXTI_Line = EXTI_Line13;
+  exti_init.EXTI_Mode = EXTI_Mode_Interrupt;
+  exti_init.EXTI_Trigger = EXTI_Trigger_Rising;
+  exti_init.EXTI_LineCmd = ENABLE;
+  
+  EXTI_Init(&exti_init); 
+  
+  exti_init.EXTI_Line = EXTI_Line14;
+  exti_init.EXTI_Mode = EXTI_Mode_Interrupt;
+  exti_init.EXTI_Trigger = EXTI_Trigger_Rising;
+  exti_init.EXTI_LineCmd = ENABLE;
+  
+  EXTI_Init(&exti_init); 
+  
+  exti_init.EXTI_Line = EXTI_Line15;
+  exti_init.EXTI_Mode = EXTI_Mode_Interrupt;
+  exti_init.EXTI_Trigger = EXTI_Trigger_Rising;
+  exti_init.EXTI_LineCmd = ENABLE;
+  
+  EXTI_Init(&exti_init); 
+}
+
 

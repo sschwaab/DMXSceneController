@@ -62,7 +62,7 @@ void init_lcd(){
   lcd_write(0x28);          //00101000 - 4bit, 2 lines, 5x8 font
   wait_ms(1);
   
-  lcd_write(0x0E); //0x0c         //00001100 - display on cursor and blinking off
+  lcd_write(0x0C); //0x0c         //00001100 - display on cursor and blinking off
   wait_ms(1);
   
   lcd_write(0x01);          //Clear Display
