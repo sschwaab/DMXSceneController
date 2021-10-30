@@ -98,10 +98,15 @@
 #define LED_PORT GPIOC
 #define LED_PIN GPIO_Pin_13
 
-#define TOGGLE_LED 
+//******************************************************//
+//User Button Power LED
+//******************************************************//  
+#define LED_USER_PORT GPIOA
+#define LED_USER_PIN GPIO_Pin_15
 
-
-//TODO: Refactor
-#define TIM4_CLEAR_INTERRUPTS TIM_ClearITPendingBit(TIM4, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)
-
+#ifdef MODULE_IO
+  void init_io();
+#else
+  extern void init_io();
+#endif  
 #endif

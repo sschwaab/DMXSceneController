@@ -31,9 +31,8 @@ void init_i2c_iox(){
   
   I2C_Init(I2C1, &i2c_init);
   
-  //Busy Flag Stuck see errata
+  //Busy Flag Stuck Workaround (see errata)
   if(I2C1->SR2 & I2C_SR2_BUSY){
-    
     // 1. Disable the I2C peripheral by clearing the PE bit in I2Cx_CR1 register.
     I2C1->CR1 &= ~I2C_CR1_PE;
     //2. Configure the SCL and SDA I/Os as General Purpose Output Open-Drain, High level 
@@ -93,8 +92,37 @@ void init_i2c_iox(){
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, DISABLE);
 }
 
+void init_iox_interrupt(){
+  GPIO_InitTypeDef gpio_init;
+  
+  gpio_init.GPIO_Pin = IOX_INTERRUPT_PIN;
+  gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
+  gpio_init.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  
+  GPIO_Init(IOX_INTERRUPT_PORT, &gpio_init); 
+  
+  GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource7);
+  
+  EXTI_InitTypeDef exti_init;
+  exti_init.EXTI_Line = EXTI_Line7;
+  exti_init.EXTI_Mode = EXTI_Mode_Interrupt;
+  //IO Expander drives Interrupt Pin low on change in input registers
+  exti_init.EXTI_Trigger = EXTI_Trigger_Falling;
+  exti_init.EXTI_LineCmd = ENABLE;
+  
+  EXTI_Init(&exti_init); 
+  
+  NVIC_InitTypeDef nvic_init;
+  nvic_init.NVIC_IRQChannel = EXTI9_5_IRQn;
+  nvic_init.NVIC_IRQChannelPreemptionPriority = 9;
+  nvic_init.NVIC_IRQChannelSubPriority = 0;
+  nvic_init.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&nvic_init);
+}
+
 void iox_set_led(uint8_t led){
-  //Workaround: PB5 cannot be used when I2C Clock enabled --> errata
+  //Workaround: PB5 cannot be used when I2C Clock enabled -->(see errata)
+  //Clock therefore only enabled when necessary
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
   
   uint8_t i2c_config[2];
@@ -117,12 +145,6 @@ uint8_t iox_read_input(I2C_TypeDef *I2Cx, uint8_t i2c_addr){
   uint8_t buf = 0x00;
   
   i2c_transmit_data(I2C1, 0x40, &buf, 1);
-  
-  // disable acknowledge of received data
-  // nack also generates stop condition after last byte received
-  // see reference manual for more info
-  //I2C_AcknowledgeConfig(I2Cx, DISABLE);
-  //I2C_GenerateSTOP(I2Cx, ENABLE);
   
   while(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY));
   I2C_GenerateSTART(I2Cx, ENABLE);
@@ -166,32 +188,4 @@ void i2c_transmit_data(I2C_TypeDef *I2Cx, uint8_t i2c_addr, uint8_t *buf, uint8_
   }
   // stop event
   I2C_GenerateSTOP(I2Cx, ENABLE);
-}
-
-void init_iox_interrupt(){
-  //Configure ExtInitLine  
-  GPIO_InitTypeDef gpio_init;
-  
-  gpio_init.GPIO_Pin = IOX_INTERRUPT_PIN;
-  gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
-  gpio_init.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  
-  GPIO_Init(IOX_INTERRUPT_PORT, &gpio_init); 
-  
-  GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource7);
-  
-  EXTI_InitTypeDef exti_init;
-  exti_init.EXTI_Line = EXTI_Line7;
-  exti_init.EXTI_Mode = EXTI_Mode_Interrupt;
-  exti_init.EXTI_Trigger = EXTI_Trigger_Falling;
-  exti_init.EXTI_LineCmd = ENABLE;
-  
-  EXTI_Init(&exti_init); 
-  
-  NVIC_InitTypeDef nvic_init;
-  nvic_init.NVIC_IRQChannel = EXTI9_5_IRQn;
-  nvic_init.NVIC_IRQChannelPreemptionPriority = 9;
-  nvic_init.NVIC_IRQChannelSubPriority = 0;
-  nvic_init.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&nvic_init);
 }

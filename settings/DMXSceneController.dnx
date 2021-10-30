@@ -46,7 +46,7 @@
         <stlinkResetStrategy>0</stlinkResetStrategy>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>187799947</Checksum>
+        <Checksum>963350626</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -125,6 +125,16 @@
         <ShowTimeSum>1</ShowTimeSum>
         <SumSortOrder>0</SumSortOrder>
     </EventLog>
+    <DisassembleMode>
+        <mode>0</mode>
+    </DisassembleMode>
+    <Breakpoints2>
+        <Bp0>_ 0 "EMUL_CODE" "{$PROJ_DIR$\lib\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c}.432.3" 0 0 1 "" 0 "" 0</Bp0>
+        <Bp1>_ 0 "EMUL_CODE" "{$PROJ_DIR$\lib\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c}.432.3" 0 0 1 "" 0 "" 0</Bp1>
+        <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\lib\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c}.989.17" 0 0 1 "" 0 "" 0</Bp2>
+        <Bp3>_ 0 "EMUL_CODE" "{$PROJ_DIR$\lib\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c}.989.17" 0 0 1 "" 0 "" 0</Bp3>
+        <Count>4</Count>
+    </Breakpoints2>
     <TermIOLog>
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
@@ -134,6 +144,10 @@
         <LogFile>_ ""</LogFile>
         <Category>_ 0</Category>
     </LogFile>
+    <Aliases>
+        <Count>0</Count>
+        <SuppressDialog>0</SuppressDialog>
+    </Aliases>
     <DriverProfiling>
         <Enabled>0</Enabled>
         <Mode>3</Mode>
@@ -147,19 +161,4 @@
     <CallStackStripe>
         <ShowTiming>1</ShowTiming>
     </CallStackStripe>
-    <DisassembleMode>
-        <mode>0</mode>
-    </DisassembleMode>
-    <Breakpoints2>
-        <Bp0>_ 0 "EMUL_CODE" "{$PROJ_DIR$\lib\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c}.432.3" 0 0 1 "" 0 "" 0</Bp0>
-        <Bp1>_ 0 "EMUL_CODE" "{$PROJ_DIR$\lib\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c}.432.3" 0 0 1 "" 0 "" 0</Bp1>
-        <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\lib\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c}.989.17" 0 0 1 "" 0 "" 0</Bp2>
-        <Bp3>_ 0 "EMUL_CODE" "{$PROJ_DIR$\lib\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c}.989.17" 0 0 1 "" 0 "" 0</Bp3>
-        <Bp4>_ 1 "EMUL_CODE" "{$PROJ_DIR$\src\stm32f10x_it.c}.168.5" 0 0 1 "" 0 "" 0</Bp4>
-        <Count>5</Count>
-    </Breakpoints2>
-    <Aliases>
-        <Count>0</Count>
-        <SuppressDialog>0</SuppressDialog>
-    </Aliases>
 </settings>

@@ -6510,6 +6510,9 @@
             <name>$PROJ_DIR$\src\init.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\src\io.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\src\iox.c</name>
         </file>
         <file>

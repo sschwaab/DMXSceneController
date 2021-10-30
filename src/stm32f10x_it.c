@@ -63,6 +63,7 @@ void UsageFault_Handler(void)
 
 void SVC_Handler(void)
 {
+  
 }
 
 void DebugMon_Handler(void)
@@ -88,57 +89,60 @@ void TIM2_IRQHandler(void)
   
 }
 
+//Timer 3 is record timer to measure break signal, if this timer overflows, a valid break condition was received
+//(valid  = long enough)
 void TIM3_IRQHandler(void)
 {
+  //Disable Timer and clear flags
   TIM3->SR &= 0;                    //Clear Flags
   TIM3->DIER &= ~TIM_IT_Update;     //Disable Interrupt
   TIM3->CR1 &= ~TIM_CR1_CEN;        //Stop Counter
   
   EXTI->IMR &= ~EXTI_Line10;    //Disable Break Search EXTI
 
-  
+  //Enable USART peripheral, since pin is only input, it does not need to be reconfigured to alternate function
   USART_IN->CR1 |= USART_CR1_UE;
    //And Start DMA to sample the data
   DMA1_Channel5->CNDTR = DMX_PACKET_LEN;
   DMA_Cmd(DMA1_Channel5, ENABLE);
-  
 }
 
+
+//Timer 4 is to generate the break signal for TX and determines the periode of dmx packets
 void TIM4_IRQHandler(void)
 {
-  //IDLE HIGH ELAPSED Start Break
+  
   if((TIM4->SR & TIM_IT_Update) && (TIM4->DIER & TIM_IT_Update)){
-    //Send out
+    //send data
     USART_OUT_TX_PORT->CRH |= 0x08 << USART_OUT_TX_CNF_POS;
     DMA1_Channel2->CNDTR = DMX_PACKET_LEN;
     DMA_Cmd(DMA1_Channel2, ENABLE);
-
   }else if((TIM4->SR & TIM_IT_CC1) && (TIM4->DIER & TIM_IT_CC1)){
-    //Drive Low
+    //Drive Low to generate break signal
     USART_OUT_TX_PORT->BSRR |= USART_OUT_TX_PIN << 16;
-
     //Set Output as GPIO
     USART_OUT_TX_PORT->CRH &= ~USART_OUT_TX_CNF_MASK;
   }else if((TIM4->SR & TIM_IT_CC2) && (TIM4->DIER & TIM_IT_CC2)){
-    //Start Mark
+    //drive high to generate mark (high time after break)
     USART_OUT_TX_PORT->BSRR |= USART_OUT_TX_PIN;
   }
   
-  //TODO: Speed up
   TIM4_CLEAR_INTERRUPTS;
 }
 
+//Transmit DMA
 void DMA1_Channel2_IRQHandler(){
   if(DMA_GetITStatus(DMA1_IT_TC2)){
     DMA_ClearITPendingBit(DMA1_IT_GL2);
-    //transfer complete --> start wait timer if no abort requested    
-    if(dmx.transmitter_status == DMX_TRANSMIT_STOP_REQUESTED || 
-      dmx.transmitter_status == DMX_TRANSMIT_STOPPED){
+    //transfer complete --> Disable DMA but make it ready for next transmission
+    //if stop is requested initiate stop
+    if(dmx.transmitter.status == DMX_TRANSMIT_STOP_REQUESTED || 
+      dmx.transmitter.status == DMX_TRANSMIT_STOPPED){
       DMA_Cmd(DMA1_Channel2, DISABLE);
       TIM_Cmd(TIM4, DISABLE);
       TIM4_CLEAR_INTERRUPTS;
 
-      dmx.transmitter_status = DMX_TRANSMIT_STOPPED;     
+      dmx.transmitter.status = DMX_TRANSMIT_STOPPED;     
     }else{
       DMA_Cmd(DMA1_Channel2, DISABLE);
       DMA1_Channel2->CNDTR = DMX_PACKET_LEN;
@@ -147,11 +151,10 @@ void DMA1_Channel2_IRQHandler(){
 }
 
 void DMA1_Channel5_IRQHandler(){
-//TODO Clear interrupts by default!
-
+  //Full packet was sampled --> tell it to the state machine
   if(DMA_GetITStatus(DMA1_IT_TC5)){
-    DMA_Cmd(DMA1_Channel5, DISABLE);
     DMA_ClearITPendingBit(DMA1_IT_GL5);
+    DMA_Cmd(DMA1_Channel5, DISABLE);
     USART_IN->CR1 &= ~USART_CR1_UE;
 
     dmx.recorder.frame_found = DMX_RECORDER_FRAME_FOUND; 
@@ -159,8 +162,6 @@ void DMA1_Channel5_IRQHandler(){
 }
 
 void EXTI15_10_IRQHandler(){
-  //TODO check if system state corresponds
-  
   //GET BREAK from DMX
   if((EXTI->PR & EXTI_Line10) && (EXTI->IMR & EXTI_Line10)){
     EXTI->PR = EXTI_Line10;
@@ -170,7 +171,7 @@ void EXTI15_10_IRQHandler(){
       TIM3->DIER &= ~TIM_IT_Update;      //Disable Interrupt
       TIM3->CR1 &= ~TIM_CR1_CEN;
     }else{
-      //Pin is low --> Start Counter
+      //Pin is low --> Start Counter to measure break length
       TIM3->CNT = 0;
       TIM3->CR1 |= TIM_CR1_CEN;         //Start Counter
       TIM3->SR &= 0;                    //Clear Flags
@@ -178,6 +179,8 @@ void EXTI15_10_IRQHandler(){
     }
   }
   
+  //Menu buttons are on the same interrupt
+  //handle them and clear interrupt flag
   if((EXTI->PR & EXTI_Line12) && (EXTI->IMR & EXTI_Line12)){
     EXTI->PR = EXTI_Line12;
     menu_buttons |= MENU_BUTTON_RECORD;
@@ -197,17 +200,28 @@ void EXTI15_10_IRQHandler(){
     EXTI->PR = EXTI_Line15;
     menu_buttons |= MENU_BUTTON_EXIT;
   }
-
-  
 }
 
+uint64_t debounce_end;
+
+//this is the not interrupt pin from the ioexpander
 void EXTI9_5_IRQHandler(){
-  EXTI->IMR &= ~EXTI_IMR_MR7;
-  if((EXTI->PR & EXTI_Line7)){
+  //disable interrupt, so that another change in iox pins wont interfere
+  if(debounce_end<millis){
+    EXTI->IMR &= ~EXTI_IMR_MR7;
+    if((EXTI->PR & EXTI_Line7)){
+    //clear flag
     EXTI->PR = EXTI_Line7;
-    
+    //and read buttons from io expander
     uint8_t btns = iox_read_input(I2C1, 0x40);
+    //buttons are active low --> invert
     recall_buttons |= ~btns;
+    debounce_end = millis+500;
   }
+  //wait_ms(500);
+  //enable iox interrupt again
   EXTI->IMR |= EXTI_IMR_MR7;
+  }else{
+    EXTI->PR = EXTI_Line7;
+  }
 }

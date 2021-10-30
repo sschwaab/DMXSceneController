@@ -8,31 +8,28 @@ uint8_t main(){
   init_core();
   init_clock();
   init_io();
-   
+
   init_lcd();
-  
-  GPIO_SetBits(DISP_BL_PORT, DISP_BL_PIN);
   
   strcpy((char*)lcd.line1, (const char*)str_bootup_1);
   strcpy((char*)lcd.line2, (const char*)str_bootup_2);
   lcd.repaint = LCD_REPAINT;
   lcd_repaint();
-  
-  wait_ms(500);
-  
-  init_timers();
-  init_usart();
-  init_mem();
-  init_dma();
+ 
+  GPIO_SetBits(DISP_BL_PORT, DISP_BL_PIN);
 
-  init_rx_exti();
+  init_dmx();
+  init_mem();
+ 
+  wait_ms(500);
   
   //init user buttons
   init_i2c_iox();
   init_iox_interrupt();
-  init_menu_buttons();
   
   wait_ms(500);
+  
+  GPIO_SetBits(LED_USER_PORT, LED_USER_PIN);
   
   while(1){    
     lcd_repaint();

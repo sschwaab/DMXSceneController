@@ -13,9 +13,12 @@ typedef struct{
 typedef enum {
   DMX_TRANSMIT_STOPPED,
   DMX_TRANSMIT_STOP_REQUESTED,
-  DMX_TRANSMIT_TRANSMITTING
-  
+  DMX_TRANSMIT_TRANSMITTING  
 }tDmx_transmitter_status;
+
+typedef struct {
+  tDmx_transmitter_status status;
+}tDmx_transmitter;
 
 typedef enum{
   DMX_RECORD_SearchFrame1,
@@ -31,13 +34,14 @@ typedef struct tDmx_recorder{
   
   uint8_t frame_found;
   
-  tDmx_recorder_status recorder_status;
+  tDmx_recorder_status status;
 }tDmx_recorder;
 
 typedef struct{
   tDmx_packet buf;
-  tDmx_transmitter_status transmitter_status;
+  tDmx_transmitter transmitter;
   tDmx_recorder recorder;
+  uint8_t scene_id;
 }tDmx;
 
 typedef enum{
@@ -50,4 +54,16 @@ typedef struct{
   char line2[17];
   tLCDStates repaint;
 }tLCD;
+
+typedef enum{
+  ST_BOOT,
+  ST_PROCESS_FRONT_BUTTONS,
+  ST_LOAD_SCENE,
+  ST_DMX_MASTER,
+  ST_PASSTHROUGH,
+  ST_RECORD_PRE,
+  ST_RECORD,
+  ST_RECORD_POST
+}tStates;
+
 #endif

@@ -44,6 +44,17 @@ void lcd_write(uint8_t byte){
 }
 
 void init_lcd(){
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+  
+  GPIO_InitTypeDef gpio_init;
+  gpio_init.GPIO_Pin = DISP_DB4_PIN | DISP_DB5_PIN| DISP_DB6_PIN| DISP_DB7_PIN;
+  gpio_init.GPIO_Pin |= DISP_E_PIN | DISP_RS_PIN | DISP_BL_PIN;  
+  
+  gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
+  gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;
+   
+  GPIO_Init(GPIOA, &gpio_init); 
+  
   //make sure to wait 15ms after power up
   wait_ms(15);
   GPIO_ResetBits(LCD_PORT, LCD_RS);
