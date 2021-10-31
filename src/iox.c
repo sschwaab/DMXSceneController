@@ -4,8 +4,6 @@
 void init_i2c_iox(){
   GPIO_InitTypeDef gpio_init;
   I2C_InitTypeDef i2c_init;
-
-
   
   // Configure I2C1 Pins
   gpio_init.GPIO_Pin = I2C_SCK_PIN | I2C_SDA_PIN;
@@ -78,9 +76,7 @@ void init_i2c_iox(){
     I2C_Init(I2C1, &i2c_init);
 
   }
-  
-  
-  
+   
   uint8_t i2c_config[3];
 
   i2c_config[0] = 0x06; // config port 0 & 1
@@ -134,6 +130,21 @@ void iox_set_led(uint8_t led){
   
   //Workaround: PB5 cannot be used when I2C Clock enabled --> errata
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, DISABLE);
+}
+
+uint8_t process_recall_buttons(){
+  if(iox_isr_flag && recall_btns_debounce_end < millis){
+    iox_isr_flag = 0;
+    uint8_t btns = iox_read_input(I2C1, 0x40);
+    //buttons are active low --> invert
+    recall_buttons |= ~btns;
+    if(recall_buttons!=0){
+      recall_btns_debounce_end = millis +100;
+    }
+    return recall_buttons;
+  }else{
+     return 0;
+  }
 }
 
 uint8_t iox_read_input(I2C_TypeDef *I2Cx, uint8_t i2c_addr){

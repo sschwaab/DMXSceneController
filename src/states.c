@@ -74,6 +74,9 @@ void fsm(){
   case ST_DMX_MASTER:    
     //if a state change was requested then process it. otherwise just do nothing in this state
     //dmx usart is handled by DMA
+    
+    recall_buttons = process_recall_buttons();
+    
     if(recall_buttons != 0x00 || 
        menu_buttons & MENU_BUTTON_RECORD  ||
        menu_buttons & MENU_BUTTON_UP ||
@@ -114,6 +117,8 @@ void fsm(){
     break;
   
   case ST_PASSTHROUGH:
+    recall_buttons = process_recall_buttons();
+    
     //Passthrough button pressed --> Reset Buttons, but stay
     if(recall_buttons == 0x80){
       recall_buttons = 0x00;

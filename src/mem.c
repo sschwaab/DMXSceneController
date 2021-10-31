@@ -76,6 +76,7 @@ void write_to_eeprom(uint16_t address, uint8_t* buf, uint16_t len){
     bytes_sent++;
     address++;
     
+    //Only 128 bytes can be written in one command. after that, send new write command
     while(bytes_sent < len && address % 128 != 0){
       SPI_I2S_SendData(SPI1, buf[bytes_sent]);
       address++;
@@ -104,7 +105,6 @@ void read_from_eeprom(uint16_t address, uint8_t* buf, uint16_t len){
   
   //empty DR
   (void)SPI1->DR;
- 
   
   //Read Data
   while(len--){

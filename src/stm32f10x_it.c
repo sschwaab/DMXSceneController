@@ -202,26 +202,13 @@ void EXTI15_10_IRQHandler(){
   }
 }
 
-uint64_t debounce_end;
+uint8_t user_buttons_isr;
 
 //this is the not interrupt pin from the ioexpander
 void EXTI9_5_IRQHandler(){
-  //disable interrupt, so that another change in iox pins wont interfere
-  if(debounce_end<millis){
-    EXTI->IMR &= ~EXTI_IMR_MR7;
-    if((EXTI->PR & EXTI_Line7)){
-    //clear flag
-    EXTI->PR = EXTI_Line7;
-    //and read buttons from io expander
-    uint8_t btns = iox_read_input(I2C1, 0x40);
-    //buttons are active low --> invert
-    recall_buttons |= ~btns;
-    debounce_end = millis+500;
-  }
-  //wait_ms(500);
-  //enable iox interrupt again
-  EXTI->IMR |= EXTI_IMR_MR7;
-  }else{
-    EXTI->PR = EXTI_Line7;
-  }
+  //jung button made problems when reading in isr
+  //isr only sets flag and i2c is read in state machine
+  //seems to be fast enough
+  EXTI->PR = EXTI_Line7;
+  iox_isr_flag = 0x01;
 }
