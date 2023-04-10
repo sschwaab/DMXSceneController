@@ -25,7 +25,7 @@ uint8_t main(){
   
   //init user buttons
   init_i2c_iox();
-  init_iox_interrupt();
+  //init_iox_interrupt();
   
   wait_ms(500);
   

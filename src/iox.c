@@ -133,7 +133,7 @@ void iox_set_led(uint8_t led){
 }
 
 uint8_t process_recall_buttons(){
-  if(iox_isr_flag && recall_btns_debounce_end < millis){
+  if(/*iox_isr_flag && */recall_btns_debounce_end < millis){
     iox_isr_flag = 0;
     uint8_t btns = iox_read_input(I2C1, 0x40);
     //buttons are active low --> invert
